@@ -7,7 +7,11 @@ const getCustomerDetailsByCustomerId = async function (req, res) {
     try {
         const id = req.params.id;
 
-        const data = await customer_detail.findAll({
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        const { count, rows } = await customer_detail.findAndCountAll({
             include: [
                 {
                     model: product,
@@ -28,22 +32,31 @@ const getCustomerDetailsByCustomerId = async function (req, res) {
                 },
             ],
             where: { customer_id: id },
+            limit: limit,
+            offset: offset,
         });
-        if (data === null) {
+
+        if (rows.length === 0) {
             return res.status(404).json({
                 status: "failed",
-                message: `customerDetails dengan id ${id} tidak ditemukan`,
+                message: `Customer details dengan id ${id} tidak ditemukan`,
             });
         }
+
         res.json({
             status: "ok",
-            data: data,
+            page: page,
+            limit: limit,
+            totalItems: count,
+            totalPages: Math.ceil(count / limit),
+            data: rows,
         });
     } catch (error) {
         console.log(
             "<<< Terjadi Kesalahan, tidak dapat menampilkan customerDetails >>>",
             error
         );
+        res.status(500).send("Terjadi kesalahan server");
     }
 };
 

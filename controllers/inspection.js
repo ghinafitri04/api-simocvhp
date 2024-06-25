@@ -9,7 +9,12 @@ import product from "../models/product.js";
 
 const allInspection = async function (req, res) {
     try {
-        const data = await inspection.findAll({
+        // Mendapatkan parameter page dan limit dari query string
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        const { count, rows } = await inspection.findAndCountAll({
             include: [
                 {
                     model: user,
@@ -27,16 +32,21 @@ const allInspection = async function (req, res) {
                     ],
                 },
             ],
+            limit: limit,
+            offset: offset,
         });
 
-        if (data.length == 0) {
-            res.send("Belum ada inspeksi tersedia");
+        if (rows.length === 0) {
+            return res.send("Belum ada inspeksi tersedia");
         }
 
         const result = {
             status: "ok",
-            count: data.length,
-            data: data,
+            page: page,
+            limit: limit,
+            totalItems: count,
+            totalPages: Math.ceil(count / limit),
+            data: rows,
         };
 
         res.json(result);
@@ -45,6 +55,7 @@ const allInspection = async function (req, res) {
             "<<< Terjadi Kesalahan, tidak dapat menampilkan inspeksi >>>",
             error
         );
+        res.status(500).send("Terjadi kesalahan server");
     }
 };
 
@@ -93,7 +104,11 @@ const getInspectionByUserId = async function (req, res) {
     try {
         const id = req.user.id;
 
-        const data = await inspection.findAll({
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        const { count, rows } = await inspection.findAndCountAll({
             include: [
                 {
                     model: customer,
@@ -107,21 +122,31 @@ const getInspectionByUserId = async function (req, res) {
                 },
             ],
             where: { user_id: id },
+            limit: limit,
+            offset: offset,
         });
-        if (data === null) {
+
+        if (rows.length === 0) {
             return res.status(404).json({
                 status: "failed",
-                message: `inspeksi dengan karyawan dengan id ${id} tidak ditemukan`,
+                message: `Inspeksi dengan karyawan dengan id ${id} tidak ditemukan`,
             });
         }
+
         res.json({
             status: "ok",
-            data: data,
+            page: page,
+            limit: limit,
+            totalItems: count,
+            totalPages: Math.ceil(count / limit),
+            data: rows,
         });
     } catch (error) {
         console.log(
-            "<<< Terjadi Kesalahan, tidak dapat menampilkan inspeksi >>>"
+            "<<< Terjadi Kesalahan, tidak dapat menampilkan inspeksi >>>",
+            error
         );
+        res.status(500).send("Terjadi kesalahan server");
     }
 };
 
@@ -129,7 +154,11 @@ const getInspectionByCustomerId = async function (req, res) {
     try {
         const id = req.params.id;
 
-        const data = await inspection.findAll({
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        const { count, rows } = await inspection.findAndCountAll({
             include: [
                 {
                     model: customer,
@@ -148,21 +177,31 @@ const getInspectionByCustomerId = async function (req, res) {
                 },
             ],
             where: { customer_id: id },
+            limit: limit,
+            offset: offset,
         });
-        if (data === null) {
+
+        if (rows.length === 0) {
             return res.status(404).json({
                 status: "failed",
-                message: `inspeksi dengan karyawan dengan id ${id} tidak ditemukan`,
+                message: `Inspeksi dengan customer dengan id ${id} tidak ditemukan`,
             });
         }
+
         res.json({
             status: "ok",
-            data: data,
+            page: page,
+            limit: limit,
+            totalItems: count,
+            totalPages: Math.ceil(count / limit),
+            data: rows,
         });
     } catch (error) {
         console.log(
-            "<<< Terjadi Kesalahan, tidak dapat menampilkan inspeksi >>>"
+            "<<< Terjadi Kesalahan, tidak dapat menampilkan inspeksi >>>",
+            error
         );
+        res.status(500).send("Terjadi kesalahan server");
     }
 };
 

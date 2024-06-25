@@ -1,17 +1,31 @@
-// const letter_type = require("../models/letter_type");
+const letter_type = require("../models/letter_type");
 import letter_type from "../models/letter_type.js";
 
 const allLetterType = async function (req, res) {
     try {
-        const data = await letter_type.findAll();
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.pageSize) || 10;
 
-        if (data.length == 0) {
-            res.send("Belum ada jenis surat tersedia");
+        const offset = (page - 1) * pageSize;
+        const limit = pageSize;
+
+        const totalCount = await letter_type.count();
+
+        const data = await letter_type.findAll({
+            offset: offset,
+            limit: limit,
+        });
+
+        if (data.length === 0) {
+            return res.send("Belum ada jenis surat tersedia");
         }
 
         const result = {
             status: "ok",
             count: data.length,
+            totalRecords: totalCount,
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / pageSize),
             data: data,
         };
 
@@ -21,6 +35,7 @@ const allLetterType = async function (req, res) {
             "<<< Terjadi Kesalahan, tidak dapat menampilkan jenis surat >>>",
             error
         );
+        res.status(500).send("Internal Server Error");
     }
 };
 

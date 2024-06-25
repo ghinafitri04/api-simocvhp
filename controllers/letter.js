@@ -1,5 +1,5 @@
-// const { where } = require("sequelize");
-// const multer = require("multer");
+const { where } = require("sequelize");
+const multer = require("multer");
 import letter from "../models/letter.js";
 import multer from "multer";
 import letter_type from "../models/letter_type.js";
@@ -14,7 +14,6 @@ const letterStorage = multer.diskStorage({
     },
 });
 
-//filter untuk pdf
 const fileFilter = function (req, file, cb) {
     if (file.mimetype === "application/pdf") {
         cb(null, true);
@@ -23,85 +22,18 @@ const fileFilter = function (req, file, cb) {
     }
 };
 
-// penggunaan multer
 const multerLetter = multer({
     storage: letterStorage,
     fileFilter: fileFilter,
 }).single("letterFile");
 
-// const allLetter = async function (req, res) {
-//     try {
-//         const data = await letter.findAll({
-//             include: [
-//                 {
-//                     model: letter_type,
-//                     as: "letter_type",
-//                     attributes: ["letter_type"],
-//                 },
-//                 {
-//                     model: user,
-//                     as: "user",
-//                     attributes: ["username", "user_name", "position"],
-//                 },
-//             ],
-//         });
-
-//         if (data.length == 0) {
-//             res.send("Belum ada surat yang diajukan");
-//         }
-
-//         const result = {
-//             status: "ok",
-//             count: data.length,
-//             data: data,
-//         };
-
-//         res.json(result);
-//     } catch (error) {
-//         console.log(
-//             "<<< Terjadi Kesalahan, tidak dapat menampilkan  surat >>>",
-//             error
-//         );
-//     }
-// };
-
-// const getLetterById = async function (req, res) {
-//     try {
-//         const id = req.params.id;
-
-//         const data = await letter.findOne({
-//             include: [
-//                 {
-//                     model: letter_type,
-//                     as: "letter_type",
-//                     attributes: ["letter_type"],
-//                 },
-//                 {
-//                     model: user,
-//                     as: "user",
-//                     attributes: ["username", "user_name", "position"],
-//                 },
-//             ],
-//             where: { id: id },
-//         });
-//         if (data === null) {
-//             return res.status(404).json({
-//                 status: "failed",
-//                 message: ` surat dengan id ${id} tidak ditemukan`,
-//             });
-//         }
-//         res.json({
-//             status: "ok",
-//             data: data,
-//         });
-//     } catch (error) {
-//         console.log("<<< Terjadi Kesalahan, tidak dapat menampilkan surat >>>");
-//     }
-// };
-
 const allLetter = async function (req, res) {
     try {
-        const data = await letter.findAll({
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        const { count, rows } = await letter.findAndCountAll({
             include: [
                 {
                     model: letter_type,
@@ -114,16 +46,24 @@ const allLetter = async function (req, res) {
                     attributes: ["username", "user_name", "position"],
                 },
             ],
+            limit: limit,
+            offset: offset,
         });
 
-        if (data.length == 0) {
-            res.send("Belum ada surat yang diajukan");
+        if (rows.length === 0) {
+            return res.status(404).json({
+                status: "failed",
+                message: "Belum ada surat yang diajukan",
+            });
         }
 
         const result = {
             status: "ok",
-            count: data.length,
-            data: data.map((item) => ({
+            page: page,
+            limit: limit,
+            totalItems: count,
+            totalPages: Math.ceil(count / limit),
+            data: rows.map((item) => ({
                 ...item.toJSON(),
                 file_url: item.file_url,
             })),
@@ -132,9 +72,10 @@ const allLetter = async function (req, res) {
         res.json(result);
     } catch (error) {
         console.log(
-            "<<< Terjadi Kesalahan, tidak dapat menampilkan  surat >>>",
+            "<<< Terjadi Kesalahan, tidak dapat menampilkan surat >>>",
             error
         );
+        res.status(500).send("Terjadi kesalahan server");
     }
 };
 
@@ -174,11 +115,15 @@ const getLetterById = async function (req, res) {
         console.log("<<< Terjadi Kesalahan, tidak dapat menampilkan surat >>>");
     }
 };
+
 const getLetterByUserId = async function (req, res) {
     try {
         const id = req.user.id;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
 
-        const data = await letter.findAll({
+        const { count, rows } = await letter.findAndCountAll({
             include: [
                 {
                     model: letter_type,
@@ -187,13 +132,24 @@ const getLetterByUserId = async function (req, res) {
                 },
             ],
             where: { user_id: id },
+            limit: limit,
+            offset: offset,
         });
-        if (data.length == 0) {
-            res.send("Belum ada surat yang diajukan");
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                status: "failed",
+                message: "Belum ada surat yang diajukan",
+            });
         }
+
         res.json({
             status: "ok",
-            data: data.map((item) => ({
+            page: page,
+            limit: limit,
+            totalItems: count,
+            totalPages: Math.ceil(count / limit),
+            data: rows.map((item) => ({
                 ...item.toJSON(),
                 file_url: item.file_url,
             })),
@@ -203,6 +159,7 @@ const getLetterByUserId = async function (req, res) {
             "<<< Terjadi Kesalahan, tidak dapat menampilkan surat >>>",
             error
         );
+        res.status(500).send("Terjadi kesalahan server");
     }
 };
 

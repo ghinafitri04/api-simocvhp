@@ -2,16 +2,29 @@ import customer from "../models/customer.js";
 
 const allCustomer = async function (req, res) {
     try {
-        const data = await customer.findAll();
+        // Mendapatkan parameter page dan limit dari query string
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
 
-        if (data.length == 0) {
-            res.send("Belum ada customer tersedia");
+        // Mendapatkan data customer dengan limit dan offset
+        const { count, rows } = await customer.findAndCountAll({
+            limit: limit,
+            offset: offset,
+        });
+
+        // Mengecek apakah ada data
+        if (rows.length === 0) {
+            return res.send("Belum ada customer tersedia");
         }
 
         const result = {
             status: "ok",
-            count: data.length,
-            data: data,
+            page: page,
+            limit: limit,
+            totalItems: count,
+            totalPages: Math.ceil(count / limit),
+            data: rows,
         };
 
         res.json(result);
@@ -20,6 +33,7 @@ const allCustomer = async function (req, res) {
             "<<< Terjadi Kesalahan, tidak dapat menampilkan customer >>>",
             error
         );
+        res.status(500).send("Terjadi kesalahan server");
     }
 };
 

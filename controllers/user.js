@@ -1,5 +1,3 @@
-// const user = require("../models/user");
-// const bcrypt = require("bcrypt");
 import { Sequelize, Op } from "sequelize";
 import user from "../models/user.js";
 import bcrypt from "bcrypt";
@@ -233,81 +231,6 @@ const addUser = async function (req, res) {
         console.log(error, "<<< terjadi kesalahan");
     }
 };
-
-// const editUser = async function (req, res) {
-//     try {
-//         const userId = req.params.id;
-//         const {
-//             username,
-//             userName,
-//             position,
-//             role,
-//             phoneNumber,
-//             address,
-//             joinDate,
-//         } = req.body;
-
-//         // Cari user berdasarkan ID
-//         const userToUpdate = await user.findByPk(userId);
-
-//         if (!userToUpdate) {
-//             return res.status(404).json({
-//                 status: "failed",
-//                 message: "User tidak ditemukan",
-//             });
-//         }
-
-//         // Cek apakah username baru sudah dipakai oleh user lain
-//         if (username) {
-//             const usernameExist = await user.findOne({
-//                 where: {
-//                     username: username,
-//                     id: { [Sequelize.Op.ne]: userId }, // Pastikan tidak mengecek user yang sedang diedit
-//                 },
-//             });
-//             if (usernameExist) {
-//                 return res.status(400).json({
-//                     status: "failed",
-//                     message: "Username sudah dipakai oleh user lain",
-//                 });
-//             }
-//         }
-
-//         // Update user dengan data baru
-//         userToUpdate.username = username || userToUpdate.username;
-//         userToUpdate.user_name = userName || userToUpdate.user_name;
-//         userToUpdate.position = position || userToUpdate.position;
-//         userToUpdate.role = role || userToUpdate.role;
-//         userToUpdate.phone_number = phoneNumber || userToUpdate.phone_number;
-//         userToUpdate.address = address || userToUpdate.address;
-//         userToUpdate.join_date = joinDate || userToUpdate.join_date;
-//         userToUpdate.updatedAt = new Date();
-
-//         // Simpan perubahan
-//         await userToUpdate.save();
-
-//         res.status(200).json({
-//             status: "ok",
-//             data: {
-//                 id: userToUpdate.id,
-//                 username: userToUpdate.username,
-//                 user_name: userToUpdate.user_name,
-//                 position: userToUpdate.position,
-//                 role: userToUpdate.role,
-//                 phone_number: userToUpdate.phone_number,
-//                 address: userToUpdate.address,
-//                 createdAt: userToUpdate.createdAt,
-//                 updatedAt: userToUpdate.updatedAt,
-//             },
-//         });
-//     } catch (error) {
-//         console.log(error, "<<< terjadi kesalahan");
-//         res.status(500).json({
-//             status: "error",
-//             message: "Terjadi kesalahan saat mengedit user",
-//         });
-//     }
-// };
 
 const editUser = async function (req, res) {
     try {

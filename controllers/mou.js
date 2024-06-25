@@ -1,6 +1,6 @@
-// const { where } = require("sequelize");
-// const mou = require("../models/mou");
-// const multer = require("multer");
+const { where } = require("sequelize");
+const mou = require("../models/mou");
+const multer = require("multer");
 import mou from "../models/mou.js";
 import multer from "multer";
 import customer from "../models/customer.js";
@@ -14,7 +14,6 @@ const mouStorage = multer.diskStorage({
     },
 });
 
-//filter untuk pdf
 const fileFilter = function (req, file, cb) {
     if (file.mimetype === "application/pdf") {
         cb(null, true);
@@ -23,7 +22,6 @@ const fileFilter = function (req, file, cb) {
     }
 };
 
-// penggunaan multer
 const multerMou = multer({
     storage: mouStorage,
     fileFilter: fileFilter,

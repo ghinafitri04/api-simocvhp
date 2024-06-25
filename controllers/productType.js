@@ -1,17 +1,31 @@
-// const product_type = require("../models/product_type");
+const product_type = require("../models/product_type");
 import product_type from "../models/product_type.js";
 
 const allProductType = async function (req, res) {
     try {
-        const data = await product_type.findAll();
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.pageSize) || 10;
 
-        if (data.length == 0) {
-            res.send("Belum ada tipe barang tersedia");
+        const offset = (page - 1) * pageSize;
+        const limit = pageSize;
+
+        const totalCount = await product_type.count();
+
+        const data = await product_type.findAll({
+            offset: offset,
+            limit: limit,
+        });
+
+        if (data.length === 0) {
+            return res.send("Belum ada tipe barang tersedia");
         }
 
         const result = {
             status: "ok",
             count: data.length,
+            totalRecords: totalCount,
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / pageSize),
             data: data,
         };
 
@@ -21,6 +35,7 @@ const allProductType = async function (req, res) {
             "<<< Terjadi Kesalahan, tidak dapat menampilkan tipe barang >>>",
             error
         );
+        res.status(500).send("Internal Server Error");
     }
 };
 
