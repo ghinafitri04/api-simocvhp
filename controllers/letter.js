@@ -1,5 +1,3 @@
-const { where } = require("sequelize");
-const multer = require("multer");
 import letter from "../models/letter.js";
 import multer from "multer";
 import letter_type from "../models/letter_type.js";

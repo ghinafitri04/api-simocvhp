@@ -1,4 +1,3 @@
-const product_type = require("../models/product_type");
 import product_type from "../models/product_type.js";
 
 const allProductType = async function (req, res) {

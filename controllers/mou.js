@@ -1,6 +1,3 @@
-const { where } = require("sequelize");
-const mou = require("../models/mou");
-const multer = require("multer");
 import mou from "../models/mou.js";
 import multer from "multer";
 import customer from "../models/customer.js";

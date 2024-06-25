@@ -1,4 +1,3 @@
-const letter_type = require("../models/letter_type");
 import letter_type from "../models/letter_type.js";
 
 const allLetterType = async function (req, res) {
